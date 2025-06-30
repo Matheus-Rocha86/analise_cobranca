@@ -8,7 +8,7 @@ def db_resulth() -> tuple:
             user='sysdba', password='masterkey') as conn:
 
         cursor = conn.cursor()
-        un_year = timedelta(days=365)
+        one_year = timedelta(days=365)
         two_years = timedelta(days=730)
         today = date.today()
 
@@ -16,7 +16,7 @@ def db_resulth() -> tuple:
         cursor.execute(
             f"""SELECT SUM(p.TOTALPEDIDO)
             FROM PEDIDOC p
-            WHERE p.DATAFATURA BETWEEN '{today - un_year}' AND '{today}'
+            WHERE p.DATAFATURA BETWEEN '{today - one_year}' AND '{today}'
             AND p.TIPOPEDIDO = 55 AND FATURADO = 'S' AND p.TIPODAV <> 'O'
             """
         )
