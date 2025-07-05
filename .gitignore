@@ -129,3 +129,4 @@ db.sqlite3
 db copy.sqlite3
 static/
 db.areceber.sqlite3
+dados_mensais.json
