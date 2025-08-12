@@ -3,12 +3,14 @@ from typing import List, Tuple, Optional, Any
 import fdb
 import pandas as pd
 from matplotlib import pyplot as plt
-from salve import to_save_json 
+from matplotlib.ticker import FuncFormatter, PercentFormatter
+import locale
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 
 class Database:
     """Classe base genérica para operações com banco de dados Firebird."""
-    
+
     def __init__(self, host: str, database: str, user: str, password: str):
         self.host = host
         self.database = database
@@ -151,19 +153,27 @@ if __name__ == "__main__":
     df_finally = df_gruouped[['COD', 'NOME', 'SALDO', 'PMR']]
     gp = df_finally.loc[df_finally['PMR'] > pmr_global].reset_index()
     # Imprimir
-    #print(gp[['COD', 'NOME', 'SALDO']])
+    formatted_saldo = gp['SALDO'].apply(lambda x: locale.format_string('%10.2f', x, grouping=True))
+    print(gp[['COD', 'NOME']].assign(SALDO=formatted_saldo).sort_values(by='NOME', ascending=True).to_string(index=False))
+
     # Visualização em gráficos
     # Quantidade de contas vencidas
     # <30 dias
     print(df_finally['PMR'].value_counts(bins=5))
+    print(df_finally['PMR'].describe())
+    print(df_finally['SALDO'].describe())
 
     # Plots
     # Faixas de valores
     track_1 = df_finally.loc[(df_finally['PMR'] <= 30)].reset_index()  # Até 30 dias
     track_2 = df_finally.loc[(df_finally['PMR'] > 30) & (df_finally['PMR'] <= 60)].reset_index()  # De 30 até 60 dias
     track_3 = df_finally.loc[(df_finally['PMR'] > 60) & (df_finally['PMR'] <= 90)].reset_index()  # De 60 até 90 dias
-    track_4 = df_finally.loc[(df_finally['PMR'] > 90) & (df_finally['PMR'] <= 120)].reset_index()  # De 90 até 120 dias
+    track_4 = df_finally.loc[(df_finally['PMR'] > 90) & (df_finally['PMR'] <= 120)].reset_index(drop=True)  # De 90 até 120 dias
     track_5 = df_finally.loc[(df_finally['PMR'] > 120) & (df_finally['PMR'] <= 180)].reset_index()  # De 120 até 180 dias
+
+    # Visualizar clientes em atraso em uma faixa específica
+    atrasos = track_4['SALDO'].apply(lambda x: locale.format_string('%10.2f', x, grouping=True))
+    print(track_4[['COD', 'NOME']].assign(SALDO=atrasos).sort_values(by='NOME', ascending=True).to_string(index=False))
 
     # Totais das faixas
     tot_track_1 = track_1['SALDO'].sum()
@@ -172,15 +182,36 @@ if __name__ == "__main__":
     tot_track_4 = track_4['SALDO'].sum()
     tot_track_5 = track_5['SALDO'].sum()
 
-    categories = ['<30 dias', '30 a 60 dias', '60 a 90 dias', '90 a 120 dias', '120 dias>']
+    categories = ['<30 dias', 'De 30 a 60 dias', 'De 60 a 90 dias', 'De 90 a 120 dias', 'De 120 dias>']
     data = [tot_track_1, tot_track_2, tot_track_3, tot_track_4, tot_track_5]
-    barr = plt.bar(categories, data, color='skyblue')
-    def adicionar_rotulos(bar_plot, data):
-        for i, valor in enumerate(data):
-            plt.text(i, valor, f'{valor:_}'.replace('.', ',').replace('_', '.'), ha='center', va='bottom')
-    adicionar_rotulos(plt.bar(categories, data), data)
-    plt.title('Total em atraso por tempo em dias')
-    plt.ylabel('Total em atraso (R$)')
-    plt.show()
 
-    to_save_json(categories, data)
+    # Gráfico de barras
+    #def adicionar_rotulos(bar_plot, data):
+    #    for i, valor in enumerate(data):
+    #        plt.text(i, valor, f'{round(valor, ndigits=2):_}'.replace('.', ',').replace('_', '.'), ha='center', va='bottom')
+    #barr = plt.bar(categories, data, color='skyblue')
+    #adicionar_rotulos(plt.bar(categories, data), data)
+    #plt.title('Total em atraso por tempo em dias')
+    #plt.ylabel('Total em atraso (R$)')
+
+    # Gráfico de pizza
+    #myexplode = [0.025, 0, 0, 0, 0]
+    #plt.pie(data, autopct='%1.1f%%', startangle=90, explode=myexplode)
+    #plt.legend(categories, title="Atrasos:", bbox_to_anchor=(1.2, 0.5), loc='center right')
+    #plt.tight_layout()
+    #plt.title('Clientes em atraso', loc='center', fontdict={'size': 24}, y=0.95)
+    #plt.show()
+
+    # Histograma
+    #def formato_milhar(x, pos):
+    #    return '{:,.0f}'.format(x).replace(',', '.')
+
+    #plt.title('Distribuição da quantidade de clientes pelo saldo em atraso', fontsize=20)
+    #plt.xlabel('Valor em R$', fontsize=15)
+    #plt.ylabel('Frequência Absoluta', fontsize=15)
+    #plt.tick_params(labelsize=12)
+    #plt.hist(df_gruouped['SALDO'], 30, rwidth=0.9, color='red', alpha=0.7, density=True)
+    #plt.gca().xaxis.set_major_formatter(FuncFormatter(formato_milhar))
+    #plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
+
+    plt.show()
