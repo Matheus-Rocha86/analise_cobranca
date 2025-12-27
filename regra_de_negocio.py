@@ -19,11 +19,15 @@ class RegraDeNegocio:
         self._repositorio_estoque2 = repositorio_estoque2
 
     def calcular_cmv(self):
-        dados_cmv = self._repositorio_banco.processar_dados()
-        # Cria um dataframe do custo das mercadorias vendidas
-        df = pd.DataFrame(dados_cmv,
-                          columns=["COD", "DESCRICAO", "VALOR", "TOTAL"])
-        return df["TOTAL"].sum()
+        try:
+            dados_cmv = self._repositorio_banco.processar_dados()
+        except ValueError:
+            print("Erro ao conectar com o banco.")
+        else:
+            # Cria um dataframe do custo das mercadorias vendidas
+            df = pd.DataFrame(dados_cmv,
+                              columns=["COD", "DESCRICAO", "VALOR", "TOTAL"])
+            return df["TOTAL"].sum()
 
     def calcular_estoque_total(self):
         """Calcula e retorna ambos os estoques totais."""

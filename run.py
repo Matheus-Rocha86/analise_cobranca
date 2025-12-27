@@ -55,12 +55,14 @@ def run():
     giro_estoque = regra_de_negocio.calcular_giro_estoque()
 
     giro_estoque_por_produto = regra_de_negocio.calcular_giro_estoque_por_produto()
+
     estoque = regra_de_negocio.obter_cobertura_estoque()
 
-    print("Cobertura de Estoque:")
-    print(estoque)
-
-    return estoque
+    return {
+        "giro_estoque": giro_estoque,
+        "giro_por_produto": giro_estoque_por_produto,
+        "cobertura": estoque
+    }
 
 
 if __name__ == "__main__":
