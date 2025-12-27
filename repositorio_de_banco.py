@@ -1,15 +1,15 @@
 from conexao_banco_dados_resulth import ConexaoBancoDadosResulth
 
 
-class RepositorioDeBanco:
+class RepositorioDeBanco(ConexaoBancoDadosResulth):
     """
     Classe que expressa as consultas em SQL ao banco de dados.
     """
     def __init__(self,
                  data_inicial: str,
-                 conexao: ConexaoBancoDadosResulth = None) -> None:
+                 conexao: ConexaoBancoDadosResulth) -> None:
         self.data_inicial = data_inicial
-        self.__conexao = conexao or ConexaoBancoDadosResulth()
+        self.__conexao = conexao
 
     def select_cmv(self):
         return """
