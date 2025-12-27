@@ -1,15 +1,16 @@
 import pandas as pd
+from interface_tabela import IRepositorioTabelaAbstrato
 from pyparsing import Path
 
 
-class RepositorioTabelasEstoques:
+class RepositorioTabelasEstoques(IRepositorioTabelaAbstrato):
     """
     Repositório para manipulação de tabelas de estoques
     """
     def __init__(self, caminho_tabela_estoque: Path) -> None:
         self.caminho_tabela_estoque = caminho_tabela_estoque
 
-    def carregar_tabela_estoque(self) -> pd.DataFrame:
+    def carregar_estoque(self) -> pd.DataFrame:
         df_estoque = pd.read_csv(
             self.caminho_tabela_estoque,
             header=None,
@@ -19,7 +20,7 @@ class RepositorioTabelasEstoques:
         return df_estoque
 
     def retornar_serie_total_estoque(self) -> pd.Series:
-        df_estoque = self.carregar_tabela_estoque()
+        df_estoque = self.carregar_estoque()
         df_estoque["TOTAL"] = df_estoque["TOTAL"].str.replace(',', '.')
         df_estoque["TOTAL"] = pd.to_numeric(
             df_estoque["TOTAL"], errors='coerce')
@@ -27,7 +28,7 @@ class RepositorioTabelasEstoques:
         return df_estoque["TOTAL"]
 
     def retornar_dataframe_estoque(self) -> pd.DataFrame:
-        df_estoque = self.carregar_tabela_estoque()
+        df_estoque = self.carregar_estoque()
         df_estoque["TOTAL"] = df_estoque["TOTAL"].str.replace(',', '.')
         df_estoque["TOTAL"] = pd.to_numeric(
             df_estoque["TOTAL"], errors='coerce')

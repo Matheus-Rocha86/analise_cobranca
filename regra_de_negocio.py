@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
-from pyparsing import Path
-from repositorio_de_banco import RepositorioDeBanco
-from repositorio_tabelas_estoques import RepositorioTabelasEstoques
+from interface_banco import IRepositorioBancoAbstrato
+from interface_tabela import IRepositorioTabelaAbstrato
 
 
 class RegraDeNegocio:
@@ -11,19 +10,16 @@ class RegraDeNegocio:
     """
     def __init__(self,
                  data_inicial: str,
-                 caminho_tabela_estoque1: Path,
-                 caminho_tabela_estoque2: Path,
-                 consulta_banco: RepositorioDeBanco = None,
-                 consulta_tabelas_estoques: RepositorioTabelasEstoques = None) -> None:
+                 repositorio_banco: IRepositorioBancoAbstrato,
+                 repositorio_estoque1: IRepositorioTabelaAbstrato,
+                 repositorio_estoque2: IRepositorioTabelaAbstrato) -> None:
         self.data_inicial = data_inicial
-        self.caminho_tabela_estoque1 = caminho_tabela_estoque1
-        self.caminho_tabela_estoque2 = caminho_tabela_estoque2
-        self.__consulta_banco = consulta_banco or RepositorioDeBanco(data_inicial)
-        self.__consulta_tabelas_estoques1 = consulta_tabelas_estoques or RepositorioTabelasEstoques(self.caminho_tabela_estoque1)
-        self.__consulta_tabelas_estoques2 = consulta_tabelas_estoques or RepositorioTabelasEstoques(self.caminho_tabela_estoque2)
+        self._repositorio_banco = repositorio_banco
+        self._repositorio_estoque1 = repositorio_estoque1
+        self._repositorio_estoque2 = repositorio_estoque2
 
     def calcular_cmv(self):
-        dados_cmv = self.__consulta_banco.buscar_dados()
+        dados_cmv = self._repositorio_banco.processar_dados()
         # Cria um dataframe do custo das mercadorias vendidas
         df = pd.DataFrame(dados_cmv,
                           columns=["COD", "DESCRICAO", "VALOR", "TOTAL"])
@@ -31,8 +27,8 @@ class RegraDeNegocio:
 
     def calcular_estoque_total(self):
         """Calcula e retorna ambos os estoques totais."""
-        estoque_inicial = self.__consulta_tabelas_estoques1.retornar_serie_total_estoque().sum()
-        estoque_final = self.__consulta_tabelas_estoques2.retornar_serie_total_estoque().sum()
+        estoque_inicial = self._repositorio_estoque1.retornar_serie_total_estoque().sum()
+        estoque_final = self._repositorio_estoque2.retornar_serie_total_estoque().sum()
         return {"estoque_inicial": estoque_inicial, "estoque_final": estoque_final}
 
     def calcular_giro_estoque(self):
@@ -47,7 +43,7 @@ class RegraDeNegocio:
         return giro_estoque
 
     def calcular_giro_estoque_por_produto(self):
-        dados_cmv = self.__consulta_banco.buscar_dados()
+        dados_cmv = self._repositorio_banco.processar_dados()
         df_cmv = pd.DataFrame(dados_cmv,
                               columns=["COD", "QUANTIDADE_VENDIDA", "CUSTO_UNITARIO", "CUSTO_TOTAL"])
         # Exclui colunas desnecessárias
@@ -55,8 +51,8 @@ class RegraDeNegocio:
         # Converte a coluna COD para int64
         df_cmv["COD"] = df_cmv["COD"].astype("int64")
         # Estoque inicial e final por produto
-        df_estoque_inicial = self.__consulta_tabelas_estoques1.retornar_dataframe_estoque()
-        df_estoque_final = self.__consulta_tabelas_estoques2.retornar_dataframe_estoque()
+        df_estoque_inicial = self._repositorio_estoque1.retornar_dataframe_estoque()
+        df_estoque_final = self._repositorio_estoque2.retornar_dataframe_estoque()
         # Renomeia colunas para evitar conflitos na mesclagem
         df_estoque_inicial = df_estoque_inicial.rename(columns={"TOTAL": "TOTAL_INICIAL"})
         df_estoque_final = df_estoque_final.rename(columns={"TOTAL": "TOTAL_FINAL"})
@@ -68,7 +64,7 @@ class RegraDeNegocio:
                               on="COD", how="outer").fillna(0)
         # Mescla o dataframe de CMV com o dataframe de estoque
         df_estoque_custo_total = pd.merge(df_cmv, df_estoque,
-                          on="COD", how="outer").fillna(0)
+                                          on="COD", how="outer").fillna(0)
         # Calcula o giro de estoque por produto
         giro_estoque_produto = []
         for indice, linha in df_estoque_custo_total.iterrows():
@@ -107,3 +103,12 @@ class RegraDeNegocio:
         dados_filtrados["COBERTURA"] = cobertura_de_estoque
         dados_filtrados.drop(columns=["CUSTO_TOTAL", "TOTAL_INICIAL", "TOTAL_FINAL"], inplace=True)
         return dados_filtrados.to_string(index=False)
+
+    # Propriedades para acesso controlado
+    @property
+    def repositorio_banco(self) -> IRepositorioBancoAbstrato:
+        return self._repositorio_banco
+
+    @property
+    def repositorio_estoque1(self) -> IRepositorioTabelaAbstrato:
+        return self._repositorio_estoque1

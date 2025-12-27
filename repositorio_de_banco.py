@@ -1,7 +1,8 @@
+from interface_banco import IRepositorioBancoAbstrato
 from conexao_banco_dados_resulth import ConexaoBancoDadosResulth
 
 
-class RepositorioDeBanco(ConexaoBancoDadosResulth):
+class RepositorioDeBanco(IRepositorioBancoAbstrato):
     """
     Classe que expressa as consultas em SQL ao banco de dados.
     """
@@ -9,9 +10,13 @@ class RepositorioDeBanco(ConexaoBancoDadosResulth):
                  data_inicial: str,
                  conexao: ConexaoBancoDadosResulth) -> None:
         self.data_inicial = data_inicial
-        self.__conexao = conexao
+        self._conexao = conexao
 
-    def select_cmv(self):
+    @property
+    def conexao_banco_dados(self) -> ConexaoBancoDadosResulth:
+        return self._conexao
+
+    def consultar_dados(self):
         return """
                 WITH t AS (
                     SELECT
@@ -43,10 +48,13 @@ class RepositorioDeBanco(ConexaoBancoDadosResulth):
                 ORDER BY t.quantidade_total DESC;
                 """
 
-    def buscar_dados(self):
-        if self.__conexao.get_connection():
-            with self.__conexao.get_connection() as conn:
+    def processar_dados(self):
+        try:
+            self._conexao.get_connection()
+        except Exception as e:
+            raise ValueError("Erro ao conectar com o banco.") from e
+        else:
+            with self._conexao.get_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute(self.select_cmv(), (self.data_inicial,))
+                cursor.execute(self.consultar_dados(), (self.data_inicial,))
                 return cursor.fetchall()
-        return None
