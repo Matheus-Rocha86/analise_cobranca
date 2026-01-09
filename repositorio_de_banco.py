@@ -65,7 +65,7 @@ class FaturamentoReceber(RepositorioDeBanco):
         super().__init__(data_inicial, conexao)
         self.data_final = data_final
 
-    def _construir_query_select_base(self, campos) -> str:
+    def _construir_query_select_base(self, campos: str) -> str:
         return f"""
                 SELECT DISTINCT
                     d.DT_EMISSAO,
@@ -75,6 +75,26 @@ class FaturamentoReceber(RepositorioDeBanco):
                     d.TIPODOCTO <> 'CO'
                     AND d.DT_EMISSAO BETWEEN ? AND ?
                 GROUP BY d.DT_EMISSAO;
+                """
+
+    def _query_select_saldo_vencido(self) -> str:
+        return """
+                SELECT
+                    d.CODCLIENTE,
+                    c.NOME,
+                    d.DT_VENCIMENTO,
+                    d.VALORDOCTO,
+                    (d.VALORDOCTO - d.VALORPAGO) AS SALDO,
+                    DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) AS DIFF_DATA
+                FROM DOCUREC d
+                INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
+                WHERE d.DT_VENCIMENTO BETWEEN '{self.end_date - self.large_day}' AND '{self.end_date - self.one_day}'
+                    AND d.TIPODOCTO <> 'CO'
+                    AND c.ATIVO = 'S'
+                    AND (d.VALORDOCTO - d.VALORPAGO) > 0.05
+                    AND d.VALORPAGO + d.VALORDESC <> d.VALORDOCTO
+                    AND d.VALORDOCTO > 1
+                ORDER BY d.DT_VENCIMENTO
                 """
 
     def _executar_consulta(self, query: str) -> List[Tuple]:
@@ -101,4 +121,8 @@ class FaturamentoReceber(RepositorioDeBanco):
 
     def processar_dados_faturamento_recebido(self) -> List[Tuple]:
         query = self.query_select_faturamento_recebido()
+        return self._executar_consulta(query)
+
+    def processar_dados_saldo_vencido(self) -> List[Tuple]:
+        query = self._query_select_saldo_vencido()
         return self._executar_consulta(query)
