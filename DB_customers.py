@@ -101,6 +101,23 @@ categories = ['<30 dias', 'De 30 a 60 dias', 'De 60 a 90 dias', 'De 90 a 120 dia
 data = [tot_track_1, tot_track_2, tot_track_3, tot_track_4, tot_track_5]
 
 
+def retornar_valores_em_atraso(dias_de_atraso: int) -> float:
+    """Retorna o valor total em atraso conforme a faixa de dias informada."""
+    match dias_de_atraso:
+        case 30:
+            return tot_track_1
+        case 60:
+            return tot_track_2
+        case 90:
+            return tot_track_3
+        case 120:
+            return tot_track_4
+        case 180:
+            return tot_track_5
+        case _:
+            return 0.0
+
+
 # Gráfico de barras
 def adicionar_rotulos(bar_plot, data):
     for i, valor in enumerate(data):
