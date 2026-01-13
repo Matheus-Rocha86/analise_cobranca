@@ -59,11 +59,13 @@ class ResulthDatabase:
 
         # Saldo VENCIDO do Contas a Receber
         total_vencidos = self.execute_scalar(
-            f"""SELECT SUM(d.VALORDOCTO) - SUM(d.VALORPAGO)
-            FROM DOCUREC d
-            INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
-            WHERE d.DT_VENCIMENTO BETWEEN '2025-02-01' AND '{self.end_date}'
-            AND d.TIPODOCTO <> 'CO' AND c.ATIVO = 'S'
+            f"""SELECT
+                    SUM(d.VALORDOCTO) - SUM(d.VALORPAGO)
+                FROM DOCUREC d
+                INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
+                WHERE d.DT_VENCIMENTO BETWEEN '2025-02-01' AND '{self.end_date}'
+                AND d.TIPODOCTO <> 'CO'
+                AND c.ATIVO = 'S'
             """
         )
 
@@ -81,16 +83,22 @@ class ResulthDatabase:
     def get_overdue_balances(self) -> List[Tuple]:
         """Obtém os saldos vencidos com detalhes."""
         return self.execute_query(
-            f"""SELECT d.CODCLIENTE, c.NOME, d.DT_VENCIMENTO, d.VALORDOCTO,
-                (d.VALORDOCTO - d.VALORPAGO) AS SALDO,
-                DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) AS DIFF_DATA
-            FROM DOCUREC d
-            INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
-            WHERE d.DT_VENCIMENTO BETWEEN '{self.end_date - self.large_day}' AND '{self.end_date - self.one_day}'
-            AND d.TIPODOCTO <> 'CO' AND c.ATIVO = 'S'
-            AND (d.VALORDOCTO - d.VALORPAGO) > 0.05 AND d.VALORPAGO + d.VALORDESC <> d.VALORDOCTO AND d.VALORDOCTO > 1
-            ORDER BY d.DT_VENCIMENTO
-            """
+            f"""SELECT
+                    d.CODCLIENTE,
+                    c.NOME,
+                    d.DT_VENCIMENTO,
+                    d.VALORDOCTO,
+                    ROUND(d.VALORDOCTO - d.VALORPAGO, 2) AS SALDO,
+                    DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) AS DIFF_DATA
+                FROM DOCUREC d
+                INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
+                WHERE d.DT_VENCIMENTO BETWEEN '{self.end_date - self.large_day}' AND '{self.end_date - self.one_day}'
+                AND d.TIPODOCTO <> 'CO'
+                AND c.ATIVO = 'S'
+                AND (d.VALORDOCTO - d.VALORPAGO) > 0.05
+                AND VALORDESC = 0
+                ORDER BY d.DT_VENCIMENTO
+                """
         )
 
     def query_os(self):

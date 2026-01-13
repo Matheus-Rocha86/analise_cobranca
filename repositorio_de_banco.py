@@ -1,6 +1,6 @@
 from typing import Any, Tuple, List
 from interface_banco import IRepositorioBancoAbstrato
-from conexao_banco_dados_resulth import ConexaoBancoDadosResulth
+from conexao_banco_dados_resulth import Conexao
 
 
 class RepositorioDeBanco(IRepositorioBancoAbstrato):
@@ -9,7 +9,7 @@ class RepositorioDeBanco(IRepositorioBancoAbstrato):
     """
     def __init__(self,
                  data_inicial: str,
-                 conexao: ConexaoBancoDadosResulth) -> None:
+                 conexao: Conexao) -> None:
         self.data_inicial = data_inicial
         self._conexao = conexao
 

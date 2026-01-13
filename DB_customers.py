@@ -81,9 +81,9 @@ track_4 = df_finally.loc[(df_finally['PMR'] > 90) & (df_finally['PMR'] <= 120)].
 track_5 = df_finally.loc[(df_finally['PMR'] > 120) & (df_finally['PMR'] <= 180)].reset_index()  # De 120 até 180 dias
 
 # Visualizar clientes em atraso em uma faixa específica
-atrasos = track_4['SALDO'].apply(lambda x: locale.format_string('%10.2f', x, grouping=True))
+atrasos = track_5['SALDO'].apply(lambda x: locale.format_string('%10.2f', x, grouping=True))
 
-print(track_4[['COD', 'NOME']].assign(SALDO=atrasos).sort_values(by='NOME', ascending=True).to_string(index=False))
+print(track_5[['COD', 'NOME']].assign(SALDO=atrasos).sort_values(by='NOME', ascending=True).to_string(index=False))
 
 # Totais das faixas
 tot_track_1 = track_1['SALDO'].sum()
