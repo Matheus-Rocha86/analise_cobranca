@@ -10,11 +10,6 @@ class Inadimplencia(ABC):
         pass
 
     @abstractmethod
-    def obter_saldo_contas_a_receber(self) -> float:
-        """Retorna o saldo total do contas a receber."""
-        pass
-
-    @abstractmethod
     def calcular_taxa_inadimplencia(self) -> float:
         """Retorna a taxa de inadimplência."""
         pass

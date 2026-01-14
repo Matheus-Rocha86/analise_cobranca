@@ -60,10 +60,14 @@ class RepositorioDeBanco(IRepositorioBancoAbstrato):
 class FaturamentoReceber(RepositorioDeBanco):
     def __init__(self,
                  data_inicial: str,
-                 conexao: ConexaoBancoDadosResulth,
-                 data_final: str) -> None:
-        super().__init__(data_inicial, conexao)
+                 data_final: str,
+                 conexao: Conexao,
+                 saldo_total=True) -> None:
+        super().__init__(
+            data_inicial=data_inicial,
+            conexao=conexao)
         self.data_final = data_final
+        self.saldo_total = saldo_total
 
     def _construir_query_select_base(self, campos: str) -> str:
         return f"""
@@ -97,6 +101,42 @@ class FaturamentoReceber(RepositorioDeBanco):
                 ORDER BY d.DT_VENCIMENTO
                 """
 
+    def _query_select_saldo_vencido_clientes(self, campos: Tuple) -> str:
+        return f"""
+                {campos[0]}
+                SELECT
+                    CODCLIENTE,
+                    NOME,
+                    COUNT(*) AS QTD_DOCUMENTOS,
+                    SUM(SALDO) AS SALDO_TOTAL,
+                -- Cálculo correto do PMR (média ponderada dos dias em atraso)
+                CAST(SUM(SALDO * DIAS_ATRASO) / SUM(SALDO) AS INT) AS Atraso_medio_dias
+                FROM (
+                    SELECT
+                        d.CODCLIENTE,
+                        c.NOME,
+                        d.VALORDOCTO,
+                        d.VALORPAGO,
+                        d.VALORDESC,
+                        ROUND(d.VALORDOCTO - d.VALORPAGO, 2) AS SALDO,
+                        DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) AS DIAS_ATRASO
+                    FROM DOCUREC d
+                    INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
+                    WHERE d.DT_VENCIMENTO BETWEEN (CURRENT_TIMESTAMP - 180) AND (CURRENT_TIMESTAMP - 1)
+                        AND d.TIPODOCTO <> 'CO'
+                        AND c.ATIVO = 'S'
+                        AND VALORDOCTO - VALORPAGO > 0.01
+                        AND VALORDESC = 0
+                        --AND c.PESSOA_FJ = 'F'
+                ) subquery
+                GROUP BY CODCLIENTE, NOME
+                -- Filtra por prazo médio de recebimento (PMR)
+                HAVING SUM(SALDO * DIAS_ATRASO) / SUM(SALDO) BETWEEN 120 AND 180 -- atraso em dias
+                ORDER BY Atraso_medio_dias DESC
+                {campos[1]}
+                {campos[2]}
+                """
+
     def _executar_consulta(self, query: str) -> List[Tuple]:
         try:
             self._conexao.get_connection()
@@ -125,4 +165,15 @@ class FaturamentoReceber(RepositorioDeBanco):
 
     def processar_dados_saldo_vencido(self) -> List[Tuple]:
         query = self._query_select_saldo_vencido()
+        return self._executar_consulta(query)
+
+    def processar_dados_total_vendido_clientes(self) -> List[Tuple]:
+        if self.saldo_total:
+            campo1 = "WITH resultado_final AS ("
+            campo2 = ")"
+            campo3 = "SELECT SUM(SALDO_TOTAL) AS SALDO_TOTAL_GERAL FROM resultado_final;"
+            campos = (campo1, campo2, campo3)
+        else:
+            campos = ("", "", "")
+        query = self._query_select_saldo_vencido_clientes(campos)
         return self._executar_consulta(query)
