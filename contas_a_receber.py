@@ -20,10 +20,10 @@ def criar_regras_de_negocio(
     )
 
 
-def main():
+def calcular_dados_inadimplencia():
     # Dados iniciai:
-    data_inicial = "2018-01-16"
-    data_final = "2027-01-15"
+    data_inicial = "2000-12-31"
+    data_final = "2050-12-31"
     conexao_banco_resulth = ConexaoBancoDadosResulth()
 
     # Calcular inadimplência:
@@ -32,10 +32,16 @@ def main():
         data_final,
         conexao_banco_resulth
     )
-    taxa_inadimplencia = regra_de_negecio.calcular_taxa_inadimplencia()
-    return taxa_inadimplencia
+    resultado = {
+        "saldo_inadimplente": regra_de_negecio.obter_total_valor_clentes_inadimplentes(),
+        "saldo_contas_a_receber": regra_de_negecio.obter_saldo_contas_a_receber(),
+        "taxa_inadimplencia": regra_de_negecio.calcular_taxa_inadimplencia()
+    }
+    return resultado
 
 
 if __name__ == "__main__":
-    resultado = main()
-    print(f"Taxa de Inadimplência: {resultado:2.2f}%")
+    resultado = calcular_dados_inadimplencia()
+    print(resultado["saldo_inadimplente"])
+    print(resultado["saldo_contas_a_receber"])
+    print(resultado["taxa_inadimplencia"])

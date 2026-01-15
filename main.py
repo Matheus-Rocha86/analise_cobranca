@@ -1,6 +1,7 @@
 from db import db_resulth
 from datetime import date
 from db_data import insert_data
+from contas_a_receber import calcular_dados_inadimplencia
 
 
 def format_numb(number: str):
@@ -27,9 +28,13 @@ def main():
     #print('Giro =', round(giro, ndigits=None))
     #print(f'Atraso = {(round(atraso, ndigits=2)) * 100} %')
 
+    # Dados da inadimplência:
+    dados_inadimplencia = calcular_dados_inadimplencia()
+
     dados1 = (date.today(), prazo_medio_recebimento, giro, atraso)
     dados2 = (date.today(), totalvencido, totalreceber, faturamento)
-    insert_data(dados1, dados2)
+    dados3 = (date.today(), dados_inadimplencia["saldo_inadimplente"], dados_inadimplencia["saldo_contas_a_receber"], dados_inadimplencia["taxa_inadimplencia"])
+    insert_data(dados1, dados2, dados3)
 
 
 if __name__ == "__main__":
