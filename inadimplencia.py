@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from conexao_banco_dados_resulth import Conexao
-from interface_banco import IRepositorioBancoAbstrato
+from interface_banco import RepositorioQuery
 
 
 class Inadimplencia(ABC):
@@ -17,18 +16,22 @@ class Inadimplencia(ABC):
 
 class InadimplenciaSimples(Inadimplencia):
     def __init__(self,
-                 conexao_banco_resulth: Conexao,
-                 repositorio: IRepositorioBancoAbstrato) -> None:
-        self.conexao_banco_resulth = conexao_banco_resulth
-        self.repositorio = repositorio
+                 data_inicial: str,
+                 data_final: str,
+                 repositorio: RepositorioQuery) -> None:
+        self.data_inicial = data_inicial
+        self.data_final = data_final
+        self._repositorio = repositorio
 
     def obter_total_valor_clentes_inadimplentes(self) -> float:
-        return self.total_inadimplencia
+        valor = self._repositorio.consultar_saldo_clientes_inadimplentes()
+        return float(valor[0][0])
 
     def obter_saldo_contas_a_receber(self) -> float:
-        return self.saldo_contas_receber
+        valor = self._repositorio.conultar_saldo_contas_a_receber()
+        return float(valor[0][0])
 
     def calcular_taxa_inadimplencia(self) -> float:
-        if self.saldo_contas_receber == 0:
-            return 0.0
-        return (self.total_inadimplencia / self.saldo_contas_receber) * 100
+        saldo_inadimplencia = self.obter_total_valor_clentes_inadimplentes()
+        saldo_contas_a_receber = self.obter_saldo_contas_a_receber()
+        return (saldo_inadimplencia / saldo_contas_a_receber) * 100

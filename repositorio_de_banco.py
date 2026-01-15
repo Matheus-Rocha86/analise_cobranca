@@ -1,6 +1,17 @@
 from typing import Any, Tuple, List
-from interface_banco import IRepositorioBancoAbstrato
+from interface_banco import IRepositorioBancoAbstrato, RepositorioQuery
 from conexao_banco_dados_resulth import Conexao
+from queries import consultar_saldo_clientes_inadimplentes, conultar_saldo_contas_a_receber
+
+
+class AtributosComuns:
+    def __init__(self,
+                 data_inicial: str,
+                 data_final: str,
+                 conexao_banco: Conexao) -> None:
+        self.data_inicial = data_inicial
+        self.data_final = data_final
+        self.conexao_banco = conexao_banco
 
 
 class RepositorioDeBanco(IRepositorioBancoAbstrato):
@@ -176,4 +187,34 @@ class FaturamentoReceber(RepositorioDeBanco):
         else:
             campos = ("", "", "")
         query = self._query_select_saldo_vencido_clientes(campos)
+        return self._executar_consulta(query)
+
+
+class ConsultaExecutor(RepositorioQuery):
+    def __init__(self,
+                 data_inicial: str,
+                 data_final: str,
+                 conexao_banco: Conexao) -> None:
+        self.data_inicial = data_inicial
+        self.data_final = data_final
+        self._conexao_banco = conexao_banco
+
+    def _executar_consulta(self, query: str) -> List[Tuple]:
+        try:
+            self._conexao_banco.get_connection()
+        except Exception as e:
+            raise ValueError("Erro ao conectar com o banco.") from e
+        else:
+            with self._conexao_banco.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(query,
+                               (self.data_inicial, self.data_final))
+                return cursor.fetchall()
+
+    def conultar_saldo_contas_a_receber(self) -> list:
+        query = conultar_saldo_contas_a_receber()
+        return self._executar_consulta(query)
+
+    def consultar_saldo_clientes_inadimplentes(self) -> list:
+        query = consultar_saldo_clientes_inadimplentes()
         return self._executar_consulta(query)
