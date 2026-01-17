@@ -21,20 +21,22 @@ def main():
     giro = 365 / prazo_medio_recebimento
     atraso = totalvencido / (totalvencido + totalreceber)
 
-    #print(f'Faturamento anual = {format_numb(faturamento)}')
-    #print(f'Total a receber vencidas = {format_numb(totalvencido)}')
-    #print(f'Total a receber não vencidas = {format_numb(totalreceber)}')
-    #print('PMR =', round(prazo_medio_recebimento, ndigits=2))
-    #print('Giro =', round(giro, ndigits=None))
-    #print(f'Atraso = {(round(atraso, ndigits=2)) * 100} %')
-
     # Dados da inadimplência:
     dados_inadimplencia = calcular_dados_inadimplencia()
 
-    dados1 = (date.today(), prazo_medio_recebimento, giro, atraso)
-    dados2 = (date.today(), totalvencido, totalreceber, faturamento)
-    dados3 = (date.today(), dados_inadimplencia["saldo_inadimplente"], dados_inadimplencia["saldo_contas_a_receber"], dados_inadimplencia["taxa_inadimplencia"])
-    insert_data(dados1, dados2, dados3)
+    indicadores_contas_recerber = (date.today(), prazo_medio_recebimento, giro, atraso)
+    valores_contas_receber = (date.today(), totalvencido, totalreceber, faturamento)
+    indicadores_inadimplencia = (
+        date.today(),
+        dados_inadimplencia["saldo_inadimplente"],
+        dados_inadimplencia["saldo_contas_a_receber"],
+        dados_inadimplencia["taxa_inadimplencia"]
+    )
+    insert_data(
+        dados1=indicadores_contas_recerber,
+        dados2=valores_contas_receber,
+        dados3=indicadores_inadimplencia
+    )
 
 
 if __name__ == "__main__":

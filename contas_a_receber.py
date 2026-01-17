@@ -23,7 +23,7 @@ def criar_regras_de_negocio(
 def calcular_dados_inadimplencia():
     # Dados iniciai:
     data_inicial = "2000-12-31"
-    data_final = "2050-12-31"
+    data_final = "2100-12-31"
     conexao_banco_resulth = ConexaoBancoDadosResulth()
 
     # Calcular inadimplência:
@@ -32,16 +32,15 @@ def calcular_dados_inadimplencia():
         data_final,
         conexao_banco_resulth
     )
-    resultado = {
-        "saldo_inadimplente": regra_de_negecio.obter_total_valor_clentes_inadimplentes(),
-        "saldo_contas_a_receber": regra_de_negecio.obter_saldo_contas_a_receber(),
-        "taxa_inadimplencia": regra_de_negecio.calcular_taxa_inadimplencia()
+
+    return {
+        "saldo_inadimplente": int(regra_de_negecio.obter_total_valor_clentes_inadimplentes()),
+        "saldo_contas_a_receber": int(regra_de_negecio.obter_saldo_contas_a_receber()),
+        "taxa_inadimplencia": round(regra_de_negecio.calcular_taxa_inadimplencia(), 2)
     }
-    return resultado
 
 
 if __name__ == "__main__":
-    resultado = calcular_dados_inadimplencia()
-    print(resultado["saldo_inadimplente"])
-    print(resultado["saldo_contas_a_receber"])
-    print(resultado["taxa_inadimplencia"])
+    resultados = calcular_dados_inadimplencia()
+    for k, v in resultados.items():
+        print(f"{k}: {v}")
