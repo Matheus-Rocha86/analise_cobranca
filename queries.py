@@ -33,36 +33,27 @@ def conultar_saldo_contas_a_receber():
 
 def consultar_saldo_clientes_inadimplentes():
     return """
-            WITH resultado_final AS (
-            SELECT
-                CODCLIENTE,
-                NOME,
-                COUNT(*) AS QTD_DOCUMENTOS,
-                SUM(SALDO) AS SALDO_TOTAL,
-                -- Cálculo correto do PMR (média ponderada dos dias em atraso)
-                CAST(SUM(SALDO * DIAS_ATRASO) / SUM(SALDO) AS INT) AS Atraso_medio_dias
-            FROM (
+            WITH pmr AS (
                 SELECT
                     d.CODCLIENTE,
                     c.NOME,
-                    d.VALORDOCTO,
-                    d.VALORPAGO,
-                    d.VALORDESC,
-                    ROUND(d.VALORDOCTO - d.VALORPAGO, 2) AS SALDO,
+                    ROUND(d.VALORDOCTO - d.VALORPAGO - COALESCE(d.VALORDESC, 0), 2) AS SALDO,
                     DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) AS DIAS_ATRASO
                 FROM DOCUREC d
                 INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
-                WHERE d.DT_VENCIMENTO BETWEEN (CURRENT_TIMESTAMP - 180) AND (CURRENT_TIMESTAMP - 1)
+                WHERE d.SITUACAO NOT IN (2, 4)  -- Forma alternativa
                     AND d.TIPODOCTO <> 'CO'
                     AND c.ATIVO = 'S'
-                    AND VALORDOCTO - VALORPAGO > 0.01
-                    AND VALORDESC = 0
-                    --AND c.PESSOA_FJ = 'F'
-            ) subquery
-            GROUP BY CODCLIENTE, NOME
-            -- Filtra por prazo médio de recebimento (PMR)
-            HAVING SUM(SALDO * DIAS_ATRASO) / SUM(SALDO) BETWEEN 120 AND 180 -- atraso em dias
-            ORDER BY Atraso_medio_dias DESC
+                    AND DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) > 0
             )
-            SELECT SUM(SALDO_TOTAL) AS SALDO_TOTAL_GERAL FROM resultado_final;
+            SELECT
+                CODCLIENTE,
+                NOME,
+                SUM(SALDO) AS SALDO_TOTAL,
+                ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) AS PRAZO_MEDIO_RECEBIMENTO
+            FROM pmr
+            GROUP BY CODCLIENTE, NOME
+            HAVING SUM(SALDO) > 0  -- Opcional: exclui clientes com saldo zero/negativo
+                AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) > 120
+            ORDER BY SALDO_TOTAL DESC;
             """

@@ -121,7 +121,7 @@ class FaturamentoReceber(RepositorioDeBanco):
                     COUNT(*) AS QTD_DOCUMENTOS,
                     SUM(SALDO) AS SALDO_TOTAL,
                 -- Cálculo correto do PMR (média ponderada dos dias em atraso)
-                CAST(SUM(SALDO * DIAS_ATRASO) / SUM(SALDO) AS INT) AS Atraso_medio_dias
+                CAST(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0) AS INT) AS Atraso_medio_dias
                 FROM (
                     SELECT
                         d.CODCLIENTE,
@@ -129,21 +129,28 @@ class FaturamentoReceber(RepositorioDeBanco):
                         d.VALORDOCTO,
                         d.VALORPAGO,
                         d.VALORDESC,
-                        ROUND(d.VALORDOCTO - d.VALORPAGO, 2) AS SALDO,
-                        DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) AS DIAS_ATRASO
+                        ROUND(d.VALORDOCTO - d.VALORPAGO - COALESCE(d.VALORDESC, 0), 2) AS SALDO,
+                        -- Calcula dias de atraso apenas para documentos vencidos
+                        CASE
+                            WHEN d.DT_VENCIMENTO < CURRENT_TIMESTAMP
+                            THEN DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP)
+                            ELSE 0
+                        END AS DIAS_ATRASO
                     FROM DOCUREC d
                     INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
-                    WHERE d.DT_VENCIMENTO BETWEEN (CURRENT_TIMESTAMP - 180) AND (CURRENT_TIMESTAMP - 1)
+                    WHERE d.DT_VENCIMENTO < CURRENT_TIMESTAMP
+                        AND d.DT_VENCIMENTO >= DATEADD(DAY, -180, CAST(CURRENT_TIMESTAMP AS DATE))  -- Últimos 180 dias
                         AND d.TIPODOCTO <> 'CO'
                         AND c.ATIVO = 'S'
-                        AND VALORDOCTO - VALORPAGO > 0.01
-                        AND VALORDESC = 0
-                        --AND c.PESSOA_FJ = 'F'
+                        AND (d.VALORDOCTO - d.VALORPAGO - COALESCE(d.VALORDESC, 0)) > 0.01
+                        AND (d.VALORDESC IS NULL OR d.VALORDESC = 0)
                 ) subquery
+                WHERE DIAS_ATRASO > 0  -- Apenas documentos em atraso
                 GROUP BY CODCLIENTE, NOME
                 -- Filtra por prazo médio de recebimento (PMR)
-                HAVING SUM(SALDO * DIAS_ATRASO) / SUM(SALDO) BETWEEN 120 AND 180 -- atraso em dias
-                ORDER BY Atraso_medio_dias DESC
+                HAVING SUM(SALDO) > 0
+                    AND CAST(SUM(SALDO * DIAS_ATRASO) / SUM(SALDO) AS INT) BETWEEN 120 AND 180
+                ORDER BY Atraso_medio_dias DESC, SALDO_TOTAL DESC
                 {campos[1]}
                 {campos[2]}
                 """
