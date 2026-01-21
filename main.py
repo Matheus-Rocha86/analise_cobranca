@@ -1,7 +1,9 @@
 from db import db_resulth
 from datetime import date
 from db_data import insert_data
-from contas_a_receber import calcular_dados_inadimplencia
+from contas_a_receber import criar_regras_de_negocio, calcular_dados_inadimplencia
+from conexao_banco_dados_resulth import ConexaoBancoDadosResulth
+from repositorio_de_banco import ConsultaExecutor
 
 
 def format_numb(number: str):
@@ -9,6 +11,7 @@ def format_numb(number: str):
 
 
 def main():
+    data_hoje = date.today()
     resulth = db_resulth()
 
     # Transformação em float para o Total do Faturamento
@@ -21,16 +24,35 @@ def main():
     giro = 365 / prazo_medio_recebimento
     atraso = totalvencido / (totalvencido + totalreceber)
 
-    # Dados da inadimplência:
-    dados_inadimplencia = calcular_dados_inadimplencia()
+    # Calculando o saldo da inadimplência:
+    repositorio_banco = ConsultaExecutor(
+        data_inicial="2000-12-31",
+        data_final="2100-12-31",
+        conexao_banco=ConexaoBancoDadosResulth()
+    )
+    regras_de_negocio = criar_regras_de_negocio(repositorio_banco)
+    indicadores_inadimplencia = calcular_dados_inadimplencia(regras_de_negocio)
+    saldo_inadimplente = indicadores_inadimplencia["saldo_inadimplente"]
+    saldo_contas_a_receber = indicadores_inadimplencia["saldo_contas_a_receber"]
+    taxa_inadimplencia = indicadores_inadimplencia["taxa_inadimplencia"]
 
-    indicadores_contas_recerber = (date.today(), prazo_medio_recebimento, giro, atraso)
-    valores_contas_receber = (date.today(), totalvencido, totalreceber, faturamento)
+    indicadores_contas_recerber = (
+        data_hoje,
+        prazo_medio_recebimento,
+        giro,
+        atraso
+    )
+    valores_contas_receber = (
+        data_hoje,
+        totalvencido,
+        totalreceber,
+        faturamento
+    )
     indicadores_inadimplencia = (
-        date.today(),
-        dados_inadimplencia["saldo_inadimplente"],
-        dados_inadimplencia["saldo_contas_a_receber"],
-        dados_inadimplencia["taxa_inadimplencia"]
+        data_hoje,
+        saldo_inadimplente,
+        saldo_contas_a_receber,
+        taxa_inadimplencia
     )
     insert_data(
         dados1=indicadores_contas_recerber,

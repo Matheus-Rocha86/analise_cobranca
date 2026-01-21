@@ -58,7 +58,7 @@ def insert_data(dados1=None, dados2=None, dados3=None):
                 else:
                     cursor.execute(sql, dados1)
                 conexao.commit()
-            if dados2 is not None:
+            elif dados2 is not None:
                 # Comandos para inserir dados na tabela Saldos
                 sql2 = (
                     f'INSERT INTO {TABLE_NAME_S} '
@@ -71,7 +71,7 @@ def insert_data(dados1=None, dados2=None, dados3=None):
                 else:
                     cursor.execute(sql2, dados2)
                 conexao.commit()
-            if dados3 is not None:
+            elif dados3 is not None:
                 # Comandos para inserir dados na tabela Saldos
                 sql3_ = (
                     f'INSERT INTO {TABLE_NAME_INDIMPLENCIA} '

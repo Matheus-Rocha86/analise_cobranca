@@ -15,12 +15,7 @@ class Inadimplencia(ABC):
 
 
 class InadimplenciaSimples(Inadimplencia):
-    def __init__(self,
-                 data_inicial: str,
-                 data_final: str,
-                 repositorio: RepositorioQuery) -> None:
-        self.data_inicial = data_inicial
-        self.data_final = data_final
+    def __init__(self, repositorio: RepositorioQuery) -> None:
         self._repositorio = repositorio
 
     def obter_total_valor_clentes_inadimplentes(self) -> float:
