@@ -10,8 +10,8 @@ def criar_regras_de_negocio(
 
 def calcular_dados_inadimplencia(regra_de_negecio: InadimplenciaSimples):
     return {
-        "saldo_inadimplente": int(regra_de_negecio.obter_total_valor_clentes_inadimplentes()),
-        "saldo_contas_a_receber": int(regra_de_negecio.obter_saldo_contas_a_receber()),
+        "saldo_inadimplente": regra_de_negecio.obter_total_valor_clentes_inadimplentes(),
+        "saldo_contas_a_receber": regra_de_negecio.obter_saldo_contas_a_receber(),
         "taxa_inadimplencia": round(regra_de_negecio.calcular_taxa_inadimplencia(), 2)
     }
 

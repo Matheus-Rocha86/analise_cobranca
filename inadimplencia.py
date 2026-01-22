@@ -30,4 +30,4 @@ class InadimplenciaSimples(Inadimplencia):
     def calcular_taxa_inadimplencia(self) -> float:
         saldo_inadimplencia = self.obter_total_valor_clentes_inadimplentes()
         saldo_contas_a_receber = self.obter_saldo_contas_a_receber()
-        return (saldo_inadimplencia / saldo_contas_a_receber) * 100
+        return float((saldo_inadimplencia / saldo_contas_a_receber) * 100)

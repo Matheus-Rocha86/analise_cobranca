@@ -4,16 +4,6 @@ from conexao_banco_dados_resulth import Conexao
 from queries import consultar_saldo_clientes_inadimplentes, conultar_saldo_contas_a_receber
 
 
-class AtributosComuns:
-    def __init__(self,
-                 data_inicial: str,
-                 data_final: str,
-                 conexao_banco: Conexao) -> None:
-        self.data_inicial = data_inicial
-        self.data_final = data_final
-        self.conexao_banco = conexao_banco
-
-
 class RepositorioDeBanco(IRepositorioBancoAbstrato):
     """
     Classe que expressa as consultas em SQL ao banco de dados.
