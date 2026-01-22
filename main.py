@@ -45,6 +45,7 @@ def salvar_dados_receber_sqlite3(resultados: dict, repositorio: RepositorioReceb
     repositorio.salvar_pmr_giro(resultados["indicadores_pmr"])
     repositorio.salvar_saldos(resultados["valores_contas_receber"])
     repositorio.salvar_inadimplencia(resultados["indicadores_inadimplencia"])
+    print("*** Dados salvos com sucesso! ***")
 
 
 def agrupar_resultados(saldos_principais_receber, indicares_receber, indicadores_inadimplencia):
@@ -89,9 +90,7 @@ def main():
 
     salvar_dados_receber_sqlite3(resultados, repositorio_receber)
 
-    print("*** Dados salvos com sucesso! ***")
-    print("\n")
-
 
 if __name__ == "__main__":
     resultado = main()
+    print("\n")
