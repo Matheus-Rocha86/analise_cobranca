@@ -215,3 +215,86 @@ class ConsultaExecutor(RepositorioQuery):
     def consultar_saldo_clientes_inadimplentes(self) -> list:
         query = consultar_saldo_clientes_inadimplentes()
         return self._executar_consulta(query)
+
+    def consultar_clientes_faixa_atraso_dias(self, query) -> list:
+        return self._executar_consulta(query)
+
+
+class FaixaReceber:
+    def __init__(self,
+                 faixa_1_a_30_dias: bool = False,
+                 faixa_31_a_60_dias: bool = False,
+                 faixa_61_a_90_dias: bool = False,
+                 faixa_91_a_120_dias: bool = False,
+                 faixa_120_acima_dias: bool = False) -> None:
+
+        faixas = [
+            faixa_1_a_30_dias,
+            faixa_31_a_60_dias,
+            faixa_61_a_90_dias,
+            faixa_91_a_120_dias,
+            faixa_120_acima_dias
+        ]
+        # Conta quantos valores True existem
+        total_true = sum(1 for faixa in faixas if faixa)
+
+        # Validação: deve ter exatamente um True ou todos False
+        if total_true > 1:
+            raise ValueError("Apenas uma faixa pode ser marcada como True")
+        self.faixa_1_a_30_dias = faixa_1_a_30_dias
+        self.faixa_31_a_60_dias = faixa_31_a_60_dias
+        self.faixa_61_a_90_dias = faixa_61_a_90_dias
+        self.faixa_91_a_120_dias = faixa_91_a_120_dias
+        self.faixa_120_acima_dias = faixa_120_acima_dias
+
+    def _selecionar_faixa_dias(self):
+        faixas = {
+            "faixa_1_a_30_dias": self.faixa_1_a_30_dias,
+            "faixa_31_a_60_dias": self.faixa_31_a_60_dias,
+            "faixa_61_a_90_dias": self.faixa_61_a_90_dias,
+            "faixa_91_a_120_dias": self.faixa_91_a_120_dias,
+            "faixa_120_acima_dias": self.faixa_120_acima_dias
+        }
+        for faixa, valor in faixas.items():
+            if valor:
+                return faixa
+        return 0
+
+    def acessar_faixa_clientes_em_atraso(self):
+        faixa = self._selecionar_faixa_dias()
+        dicionario_faixa_comando = {
+            "faixa_1_a_30_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 1 AND 30",
+            "faixa_31_a_60_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 31 AND 60",
+            "faixa_61_a_90_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 61 AND 90",
+            "faixa_91_a_120_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 91 AND 120",
+            "faixa_120_acima_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) > 120"
+        }
+        comando_selecionado = dicionario_faixa_comando[faixa]
+
+        query = f"""
+                --Clientes devedores agrupados por faixa de PMR
+                WITH pmr AS (
+                    SELECT
+                        d.CODCLIENTE,
+                        c.NOME,
+                        ROUND(d.VALORDOCTO - d.VALORPAGO - COALESCE(d.VALORDESC, 0), 2) AS SALDO,
+                        DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) AS DIAS_ATRASO
+                    FROM DOCUREC d
+                    INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
+                    WHERE d.SITUACAO NOT IN (2, 4)  -- Forma alternativa
+                        AND d.TIPODOCTO <> 'CO'
+                        AND c.ATIVO = 'S'
+                        AND DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) > 0
+                )
+                SELECT
+                    CODCLIENTE,
+                    NOME,
+                    SUM(SALDO) AS SALDO_TOTAL,
+                    ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) AS PRAZO_MEDIO_RECEBIMENTO
+                FROM pmr
+                GROUP BY CODCLIENTE, NOME
+                HAVING SUM(SALDO) > 0  -- Opcional: exclui clientes com saldo zero/negativo
+                    {comando_selecionado}
+                ORDER BY SALDO_TOTAL DESC;
+            """
+        return query
