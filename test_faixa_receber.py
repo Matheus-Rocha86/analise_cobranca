@@ -23,7 +23,7 @@ class TestConsultaExcutor:
             data_final="2100-12-31",
             conexao_banco=ConexaoBancoDadosResulth()
         )
-        faixa = FaixaReceber(faixa_1_a_30_dias=True)
+        faixa = FaixaReceber(faixa_31_a_60_dias=True)
         query = faixa.acessar_faixa_clientes_em_atraso()
         resultado = repositorio.consultar_clientes_faixa_atraso_dias(query)
 
