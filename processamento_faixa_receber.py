@@ -92,3 +92,24 @@ processamento = ProcessamentoFaixaReceber(
 totais_faixas_resumo = processamento.mostrar_resumo_totais_faixas()
 
 pprint(totais_faixas_resumo)
+
+# Dataframe de clientes em atraso
+# Exemplo de uso para selecionar as faixas de atraso
+#faixas[0]: faixa_1_a_30_dias
+#faixas[1]: faixa_31_a_60_dias
+#faixas[2]: faixa_61_a_90_dias
+#faixas[3]: faixa_91_a_120_dias
+#faixas[4]: faixa_120_acima_dias
+
+print()
+print("Faixas disponíveis:")
+for i, faixa in enumerate(faixas):
+    print(f"faixas[{i}]: {faixa._selecionar_faixa_dias()}")
+print()
+query = faixas[int(input('>> Digite o número da faixa de atraso (0 a 4): '))].acessar_faixa_clientes_em_atraso()
+resultado_query = repositorio.consultar_clientes_faixa_atraso_dias(query)
+processamento_faixa = ProcessamentoFaixaReceber(faixa_lista=resultado_query)
+df = processamento_faixa.transformar_em_dataframe()
+print()
+print("DataFrame de clientes por faixa de atraso:")
+print(df)
