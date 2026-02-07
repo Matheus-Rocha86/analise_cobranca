@@ -71,50 +71,6 @@ class ProcessamentoFaixaReceber:
             resultado_transformado[chave] = valor
         return resultado_transformado
 
-
-repositorio = ConsultaExecutor(
-    data_inicial="2000-12-31",
-    data_final="2100-12-31",
-    conexao_banco=ConexaoBancoDadosResulth()
-)
-faixas = [
-    FaixaReceber(faixa_1_a_30_dias=True),
-    FaixaReceber(faixa_31_a_60_dias=True),
-    FaixaReceber(faixa_61_a_90_dias=True),
-    FaixaReceber(faixa_91_a_120_dias=True),
-    FaixaReceber(faixa_120_acima_dias=True)
-]
-processamento = ProcessamentoFaixaReceber(
-    faixas_listas=faixas,
-    repositorio=repositorio
-)
-
-totais_faixas_resumo = processamento.mostrar_resumo_totais_faixas()
-
-pprint(totais_faixas_resumo)
-
-# Dataframe de clientes em atraso
-print()
-print("Faixas disponíveis:")
-for i, faixa in enumerate(faixas):
-    print(f"faixas[{i}]: {faixa._selecionar_faixa_dias()}")
-print()
-
-try:
-    digito = int(input('>> Digite o número da faixa de atraso (0 a 4): '))
-    if digito < 0 or digito > 4:
-        raise ValueError("Número fora do intervalo permitido.")
-    elif not isinstance(digito, int):
-        raise ValueError("Entrada inválida. Digite um número inteiro.")
-    else:
-        query = faixas[digito].acessar_faixa_clientes_em_atraso()
-        resultado_query = repositorio.consultar_clientes_faixa_atraso_dias(query)
-        processamento_faixa = ProcessamentoFaixaReceber(faixa_lista=resultado_query)
-        df = processamento_faixa.transformar_em_dataframe()
-        print()
-        print("DataFrame de clientes por faixa de atraso:")
-        print(df)
-        print()
-except ValueError as e:
-    print(f"Erro: {e}")
-    exit()
+    def obter_saldo_nao_vencido(self) -> float:
+        saldo_nao_vencido = self.obter_saldo_total_contas_a_receber() - self.obter_valor_total_clientes_em_atraso()
+        return saldo_nao_vencido

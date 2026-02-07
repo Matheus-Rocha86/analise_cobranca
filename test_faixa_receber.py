@@ -171,3 +171,31 @@ class TestProcessamentoFaixaReceber:
             assert type(chave) is str
             assert type(valor) is float
             assert valor >= 0.0
+
+    def test_obter_saldo_nao_vencido(self):
+        repositorio = ConsultaExecutor(
+            data_inicial="2000-12-31",
+            data_final="2100-12-31",
+            conexao_banco=ConexaoBancoDadosResulth()
+        )
+
+        faixas = [
+            FaixaReceber(faixa_1_a_30_dias=True),
+            FaixaReceber(faixa_31_a_60_dias=True),
+            FaixaReceber(faixa_61_a_90_dias=True),
+            FaixaReceber(faixa_91_a_120_dias=True),
+            FaixaReceber(faixa_120_acima_dias=True)
+        ]
+
+        inad = InadimplenciaSimples(repositorio)
+
+        processamento = ProcessamentoFaixaReceber(
+            faixas_listas=faixas,
+            repositorio=repositorio,
+            inadimplencia=inad
+        )
+
+        saldo_nao_vencido = processamento.obter_saldo_nao_vencido()
+
+        assert type(saldo_nao_vencido) is float
+        assert saldo_nao_vencido >= 0.0
