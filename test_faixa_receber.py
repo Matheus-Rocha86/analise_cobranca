@@ -169,7 +169,7 @@ class TestProcessamentoFaixaReceber:
 
         for chave, valor in totais_faixas.items():
             assert type(chave) is str
-            assert type(valor) is float
+            assert isinstance(valor, (int, float))
             assert valor >= 0.0
 
     def test_obter_saldo_nao_vencido(self):

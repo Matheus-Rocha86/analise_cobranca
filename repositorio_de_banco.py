@@ -263,14 +263,17 @@ class FaixaReceber:
     def acessar_faixa_clientes_em_atraso(self):
         faixa = self._selecionar_faixa_dias()
         dicionario_faixa_comando = {
-            "faixa_1_a_30_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 1 AND 30",
-            "faixa_31_a_60_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 31 AND 60",
-            "faixa_61_a_90_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 61 AND 90",
-            "faixa_91_a_120_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) BETWEEN 91 AND 120",
-            "faixa_120_acima_dias": "AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) > 120"
+            "faixa_1_a_30_dias": "BETWEEN 1 AND 30",
+            "faixa_31_a_60_dias": "BETWEEN 31 AND 60",
+            "faixa_61_a_90_dias": "BETWEEN 61 AND 90",
+            "faixa_91_a_120_dias": "BETWEEN 91 AND 120",
+            "faixa_120_acima_dias": "> 120"
         }
-        comando_selecionado = dicionario_faixa_comando[faixa]
+        cliente_ativo = 'S'
+        comando_selecionado = (cliente_ativo, dicionario_faixa_comando[faixa])
+        return self._query_select_clientes_faixa_atraso_dias(comando_selecionado)
 
+    def _query_select_clientes_faixa_atraso_dias(self, comandos: Tuple) -> str:
         query = f"""
                 --Clientes devedores agrupados por faixa de PMR
                 WITH pmr AS (
@@ -283,7 +286,7 @@ class FaixaReceber:
                     INNER JOIN CLIENTE c ON d.CODCLIENTE = c.CODCLIENTE
                     WHERE d.SITUACAO NOT IN (2, 4)  -- Forma alternativa
                         AND d.TIPODOCTO <> 'CO'
-                        AND c.ATIVO = 'S'
+                        AND c.ATIVO = '{comandos[0]}'  -- 'S' ou 'N'
                         AND DATEDIFF(DAY, d.DT_VENCIMENTO, CURRENT_TIMESTAMP) > 0
                 )
                 SELECT
@@ -294,7 +297,13 @@ class FaixaReceber:
                 FROM pmr
                 GROUP BY CODCLIENTE, NOME
                 HAVING SUM(SALDO) > 0  -- Opcional: exclui clientes com saldo zero/negativo
-                    {comando_selecionado}
+                    AND ROUND(SUM(SALDO * DIAS_ATRASO) / NULLIF(SUM(SALDO), 0), 0) {comandos[1]}  -- Condição de faixa de atraso
                 ORDER BY SALDO_TOTAL DESC;
             """
         return query
+
+    def acessar_faixa_clientes_debito_perdido(self) -> str:
+        cliente_ativo = 'N'
+        comando = "BETWEEN 1 AND 365"
+        comando_selecionado = (cliente_ativo, comando)
+        return self._query_select_clientes_faixa_atraso_dias(comando_selecionado)
