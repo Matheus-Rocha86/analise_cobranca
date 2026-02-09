@@ -1,8 +1,6 @@
 import pandas as pd
-from conexao_banco_dados_resulth import ConexaoBancoDadosResulth
 from repositorio_de_banco import FaixaReceber, ConsultaExecutor
 from inadimplencia import InadimplenciaSimples
-from pprint import pprint
 
 
 class ProcessamentoFaixaReceber:
@@ -37,6 +35,7 @@ class ProcessamentoFaixaReceber:
 
     def transformar_em_dataframe(self) -> pd.DataFrame:
         clientes = self._acessar_cod_nomes_clientes()
+        pd.set_option('display.max_rows', None)
         return pd.DataFrame({"COD": clientes[0], "NOME": clientes[1]})
 
     def mostrar_totais_a_receber_debitos_em_atraso(self) -> dict:
