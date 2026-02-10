@@ -68,10 +68,8 @@ def agrupar_resultados(
     }
 
 
-def processar_faixa_receber(
-        faixas_receber: FaixaReceber,
-        processamento: ProcessamentoFaixaReceber,
-        repositorio: ConsultaExecutor
+def obter_total_saldo_receber_por_faixa_atraso(
+        processamento: ProcessamentoFaixaReceber
 ):
     totais_faixas_resumo = processamento.mostrar_resumo_totais_faixas()
 
@@ -84,6 +82,11 @@ def processar_faixa_receber(
     print(f"Total do débito perdido: {formatar_numeros_em_milhar(totais_faixas_resumo['total_debito_perdido'])}")
     print("=========================================")
 
+
+def exibir_dataframe_clientes_em_atraso(
+        faixas_receber: FaixaReceber,
+        repositorio: ConsultaExecutor
+):
     # Dataframe de clientes em atraso
     print()
     print("Faixas disponíveis:")
@@ -91,9 +94,11 @@ def processar_faixa_receber(
         print(f"faixas[{i}]: {faixa._selecionar_faixa_dias()}")
     print()
 
+    tamanho_faixas = len(faixas_receber)
+
     try:
-        digito = int(input('>> Digite o número da faixa de atraso (0 a 5): '))
-        if digito < 0 or digito > 5:
+        digito = int(input(f'>> Digite o número da faixa[n] de atraso (0 a {tamanho_faixas - 1}): '))
+        if digito < 0 or digito >= tamanho_faixas:
             raise ValueError("Número fora do intervalo permitido.")
         elif not isinstance(digito, int):
             raise ValueError("Entrada inválida. Digite um número inteiro.")
@@ -132,9 +137,8 @@ def obter_saldos_totais(processamento: ProcessamentoFaixaReceber):
 def formatar_numeros_em_milhar(valor: float) -> str:
     return locale.format_string("%.0f", valor, grouping=True)
 
-# FUNÇÃO MAIN() - PONTO DE ENTRADA DO PROGRAMA
 
-def main():
+def main():  # FUNÇÃO MAIN() - PONTO DE ENTRADA DO PROGRAMA
     # Configurações iniciais e definição de objetos de acesso a dados
     data_inicial = "2000-12-31"
     data_final = "2100-12-31"
@@ -186,7 +190,9 @@ def main():
 
     obter_saldos_totais(processamento)
 
-    processar_faixa_receber(faixas_receber, processamento, repositorio_resulth)
+    obter_total_saldo_receber_por_faixa_atraso(processamento)
+
+    exibir_dataframe_clientes_em_atraso(faixas_receber, repositorio_resulth)
 
 
 if __name__ == "__main__":

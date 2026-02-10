@@ -274,11 +274,7 @@ class FaixaReceber:
             "faixa_120_acima_dias": "> 120",
             "total_debito_perdido": "BETWEEN 1 AND 365"
         }
-        if "total_debito_perdido" not in faixa:
-            cliente_ativo = 'S'
-            comando_selecionado = (cliente_ativo, dicionario_faixa_comando[faixa])
-            return self._query_select_clientes_faixa_atraso_dias(comando_selecionado)
-        cliente_ativo = 'N'
+        cliente_ativo = 'N' if "total_debito_perdido" in faixa else 'S'
         comando_selecionado = (cliente_ativo, dicionario_faixa_comando[faixa])
         return self._query_select_clientes_faixa_atraso_dias(comando_selecionado)
 
