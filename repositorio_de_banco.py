@@ -226,14 +226,16 @@ class FaixaReceber:
                  faixa_31_a_60_dias: bool = False,
                  faixa_61_a_90_dias: bool = False,
                  faixa_91_a_120_dias: bool = False,
-                 faixa_120_acima_dias: bool = False) -> None:
+                 faixa_120_acima_dias: bool = False,
+                 faixa_debito_perdido: bool = False) -> None:
 
         faixas = [
             faixa_1_a_30_dias,
             faixa_31_a_60_dias,
             faixa_61_a_90_dias,
             faixa_91_a_120_dias,
-            faixa_120_acima_dias
+            faixa_120_acima_dias,
+            faixa_debito_perdido
         ]
         # Conta quantos valores True existem
         total_true = sum(1 for faixa in faixas if faixa)
@@ -246,6 +248,7 @@ class FaixaReceber:
         self.faixa_61_a_90_dias = faixa_61_a_90_dias
         self.faixa_91_a_120_dias = faixa_91_a_120_dias
         self.faixa_120_acima_dias = faixa_120_acima_dias
+        self.faixa_debito_perdido = faixa_debito_perdido
 
     def _selecionar_faixa_dias(self):
         faixas = {
@@ -253,7 +256,8 @@ class FaixaReceber:
             "faixa_31_a_60_dias": self.faixa_31_a_60_dias,
             "faixa_61_a_90_dias": self.faixa_61_a_90_dias,
             "faixa_91_a_120_dias": self.faixa_91_a_120_dias,
-            "faixa_120_acima_dias": self.faixa_120_acima_dias
+            "faixa_120_acima_dias": self.faixa_120_acima_dias,
+            "total_debito_perdido": self.faixa_debito_perdido
         }
         for faixa, valor in faixas.items():
             if valor:
@@ -267,9 +271,14 @@ class FaixaReceber:
             "faixa_31_a_60_dias": "BETWEEN 31 AND 60",
             "faixa_61_a_90_dias": "BETWEEN 61 AND 90",
             "faixa_91_a_120_dias": "BETWEEN 91 AND 120",
-            "faixa_120_acima_dias": "> 120"
+            "faixa_120_acima_dias": "> 120",
+            "total_debito_perdido": "BETWEEN 1 AND 365"
         }
-        cliente_ativo = 'S'
+        if "total_debito_perdido" not in faixa:
+            cliente_ativo = 'S'
+            comando_selecionado = (cliente_ativo, dicionario_faixa_comando[faixa])
+            return self._query_select_clientes_faixa_atraso_dias(comando_selecionado)
+        cliente_ativo = 'N'
         comando_selecionado = (cliente_ativo, dicionario_faixa_comando[faixa])
         return self._query_select_clientes_faixa_atraso_dias(comando_selecionado)
 
@@ -301,9 +310,3 @@ class FaixaReceber:
                 ORDER BY SALDO_TOTAL DESC;
             """
         return query
-
-    def acessar_faixa_clientes_debito_perdido(self) -> str:
-        cliente_ativo = 'N'
-        comando = "BETWEEN 1 AND 365"
-        comando_selecionado = (cliente_ativo, comando)
-        return self._query_select_clientes_faixa_atraso_dias(comando_selecionado)

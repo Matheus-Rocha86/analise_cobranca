@@ -54,6 +54,8 @@ class ProcessamentoFaixaReceber:
     def obter_valor_total_clientes_em_atraso(self) -> float:
         total = 0.0
         for faixa in self.faixas_listas:
+            if 'total_debito_perdido' in faixa._selecionar_faixa_dias():
+                continue  # Ignora a faixa de débito perdido
             total += self._calcular_total_por_faixa(faixa)
         return total
 

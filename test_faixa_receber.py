@@ -130,7 +130,8 @@ class TestProcessamentoFaixaReceber:
             FaixaReceber(faixa_31_a_60_dias=True),
             FaixaReceber(faixa_61_a_90_dias=True),
             FaixaReceber(faixa_91_a_120_dias=True),
-            FaixaReceber(faixa_120_acima_dias=True)
+            FaixaReceber(faixa_120_acima_dias=True),
+            FaixaReceber(faixa_debito_perdido=True)
         ]
 
         processamento = ProcessamentoFaixaReceber(
@@ -155,7 +156,8 @@ class TestProcessamentoFaixaReceber:
             FaixaReceber(faixa_31_a_60_dias=True),
             FaixaReceber(faixa_61_a_90_dias=True),
             FaixaReceber(faixa_91_a_120_dias=True),
-            FaixaReceber(faixa_120_acima_dias=True)
+            FaixaReceber(faixa_120_acima_dias=True),
+            FaixaReceber(faixa_debito_perdido=True)
         ]
 
         processamento = ProcessamentoFaixaReceber(
@@ -184,7 +186,8 @@ class TestProcessamentoFaixaReceber:
             FaixaReceber(faixa_31_a_60_dias=True),
             FaixaReceber(faixa_61_a_90_dias=True),
             FaixaReceber(faixa_91_a_120_dias=True),
-            FaixaReceber(faixa_120_acima_dias=True)
+            FaixaReceber(faixa_120_acima_dias=True),
+            FaixaReceber(faixa_debito_perdido=True)
         ]
 
         inad = InadimplenciaSimples(repositorio)

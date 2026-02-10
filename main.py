@@ -81,6 +81,7 @@ def processar_faixa_receber(
     print(f"De 61 a 90 dias: {formatar_numeros_em_milhar(totais_faixas_resumo['faixa_61_a_90_dias'])}")
     print(f"De 91 a 120 dias: {formatar_numeros_em_milhar(totais_faixas_resumo['faixa_91_a_120_dias'])}")
     print(f"Acima de 120 dias: {formatar_numeros_em_milhar(totais_faixas_resumo['faixa_120_acima_dias'])}")
+    print(f"Total do débito perdido: {formatar_numeros_em_milhar(totais_faixas_resumo['total_debito_perdido'])}")
     print("=========================================")
 
     # Dataframe de clientes em atraso
@@ -91,8 +92,8 @@ def processar_faixa_receber(
     print()
 
     try:
-        digito = int(input('>> Digite o número da faixa de atraso (0 a 4): '))
-        if digito < 0 or digito > 4:
+        digito = int(input('>> Digite o número da faixa de atraso (0 a 5): '))
+        if digito < 0 or digito > 5:
             raise ValueError("Número fora do intervalo permitido.")
         elif not isinstance(digito, int):
             raise ValueError("Entrada inválida. Digite um número inteiro.")
@@ -155,7 +156,8 @@ def main():
         FaixaReceber(faixa_31_a_60_dias=True),
         FaixaReceber(faixa_61_a_90_dias=True),
         FaixaReceber(faixa_91_a_120_dias=True),
-        FaixaReceber(faixa_120_acima_dias=True)
+        FaixaReceber(faixa_120_acima_dias=True),
+        FaixaReceber(faixa_debito_perdido=True)
     ]
 
     inadimplencia = InadimplenciaSimples(repositorio_resulth)
