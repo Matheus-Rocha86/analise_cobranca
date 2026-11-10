@@ -6,6 +6,7 @@ from repositorio_de_banco import FaixaReceber, ConsultaExecutor
 from conexao_banco_dados_resulth import ConexaoBancoDadosResulth
 from processamento_faixa_receber import ProcessamentoFaixaReceber
 from inadimplencia import InadimplenciaSimples
+from DB_customers import calcular_pmr_geral, pegar_faturamento
 
 
 class TestFaixaReceber:
@@ -202,3 +203,15 @@ class TestProcessamentoFaixaReceber:
 
         assert type(saldo_nao_vencido) is float
         assert saldo_nao_vencido >= 0.0
+
+
+class TestObterPrazoMedioRecebimento:
+    def test_pmr(self):
+        pmr = calcular_pmr_geral()
+
+        faturamento = pegar_faturamento()
+
+        assert faturamento > 0.0
+
+        assert type(pmr) is float
+        assert pmr >= 0.0

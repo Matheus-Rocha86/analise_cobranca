@@ -8,6 +8,7 @@ from conexao_repositorio_receber_sqlite import ConexaoRepositorioReceberSqlite3
 from repositorio_de_banco import ConsultaExecutor, FaixaReceber
 from processamento_faixa_receber import ProcessamentoFaixaReceber
 from inadimplencia import InadimplenciaSimples
+from DB_customers import calcular_pmr_geral
 locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 
@@ -79,8 +80,10 @@ def obter_total_saldo_receber_por_faixa_atraso(
     print(f"De 61 a 90 dias: {formatar_numeros_em_milhar(totais_faixas_resumo['faixa_61_a_90_dias'])}")
     print(f"De 91 a 120 dias: {formatar_numeros_em_milhar(totais_faixas_resumo['faixa_91_a_120_dias'])}")
     print(f"Acima de 120 dias: {formatar_numeros_em_milhar(totais_faixas_resumo['faixa_120_acima_dias'])}")
+    print()
     print(f"Total do débito perdido: {formatar_numeros_em_milhar(totais_faixas_resumo['total_debito_perdido'])}")
-    print("=========================================")
+    print(f"Prazo médio de recebimento (PMR) em dias: {round(calcular_pmr_geral(), ndigits=0)}")
+    print("===========================================================")
 
 
 def exibir_dataframe_clientes_em_atraso(
@@ -121,6 +124,7 @@ def obter_saldos_totais(processamento: ProcessamentoFaixaReceber):
     saldo_total = processamento.obter_saldo_total_contas_a_receber()
     saldo_vencido = processamento.obter_valor_total_clientes_em_atraso()
     saldo_nao_vencido = processamento.obter_saldo_nao_vencido()
+    print('\n')
     print("SALDOS PRINCIPAIS - CONTAS A RECEBER")
     print("=========================================")
     print(f"Saldo vencido: {formatar_numeros_em_milhar(saldo_vencido)}")

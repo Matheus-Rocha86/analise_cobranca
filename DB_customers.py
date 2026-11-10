@@ -12,6 +12,10 @@ resulth_db = ResulthDatabase()
 # Obtém resumo financeiro
 faturamento, vencidos, a_vencer = resulth_db.get_financial_summary()
 
+def pegar_faturamento():
+    """Obtém o faturamento total a partir do banco de dados."""
+    return resulth_db.get_financial_summary()[0]
+
 #print(f"Faturamento: R$ {faturamento:,.2f}")
 #print(f"Vencidos: R$ {vencidos:,.2f}")
 #print(f"A vencer: R$ {a_vencer:,.2f}")
@@ -41,6 +45,11 @@ df_gruouped = df.groupby(['COD', 'NOME']).agg({
 # Cálculo do PMR geral
 pmr_global = ((vencidos + a_vencer) / faturamento) * 365
 
+
+def calcular_pmr_geral():
+    """Calcula o PMR geral a partir dos dados financeiros."""
+    return ((vencidos + a_vencer) / faturamento) * 365
+
 # Cálculo do PMR por cliente
 pmr_customers = []
 
@@ -57,16 +66,16 @@ gp = df_finally.loc[df_finally['PMR'] > pmr_global].reset_index()
 # Imprimir
 formatted_saldo = gp['SALDO'].apply(lambda x: locale.format_string('%10.2f', x, grouping=True))
 
-print(gp[['COD', 'NOME']].assign(SALDO=formatted_saldo).sort_values(by='NOME', ascending=True).to_string(index=False))
+#print(gp[['COD', 'NOME']].assign(SALDO=formatted_saldo).sort_values(by='NOME', ascending=True).to_string(index=False))
 
 # Visualização em gráficos
 # Quantidade de contas vencidas
 # <30 dias
-print(df_finally['PMR'].value_counts(bins=5))
+#print(df_finally['PMR'].value_counts(bins=5))
 
-print(df_finally['PMR'].describe())
+#print(df_finally['PMR'].describe())
 
-print(df_finally['SALDO'].describe())
+#print(df_finally['SALDO'].describe())
 
 # Plots
 # Faixas de valores
@@ -83,7 +92,7 @@ track_5 = df_finally.loc[(df_finally['PMR'] > 120) & (df_finally['PMR'] <= 180)]
 # Visualizar clientes em atraso em uma faixa específica
 atrasos = track_5['SALDO'].apply(lambda x: locale.format_string('%10.2f', x, grouping=True))
 
-print(track_5[['COD', 'NOME']].assign(SALDO=atrasos).sort_values(by='NOME', ascending=True).to_string(index=False))
+#print(track_5[['COD', 'NOME']].assign(SALDO=atrasos).sort_values(by='NOME', ascending=True).to_string(index=False))
 
 # Totais das faixas
 tot_track_1 = track_1['SALDO'].sum()
@@ -149,4 +158,4 @@ plt.ylabel('Total em atraso (R$)')
 #plt.hist(df_gruouped['SALDO'], 30, rwidth=0.9, color='red', alpha=0.7, density=True)
 #plt.gca().xaxis.set_major_formatter(FuncFormatter(formato_milhar))
 #plt.gca().yaxis.set_major_formatter(PercentFormatter(1))
-plt.show()
+#plt.show()
